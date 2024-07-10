@@ -1,6 +1,10 @@
 # CPTS-cheatsheet
 HackTheBox Certified Penetration Tester Specialist Cheatsheet
 
+**Table of Contents**
+- [Tmux](#tmux)
+- [Nmap](#nmap)
+  - [Nmap address scanning](#nmap-address-scanning)
 
 ## [Tmux](https://tmuxcheatsheet.com/)
 ```
@@ -682,4 +686,12 @@ sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/
 # Spawn a shell
 sqlmap -u "http://www.example.com/?id=1" --os-shell
 ```
+## Useful Resources
 
+[HackTriks](https://book.hacktricks.xyz/)
+[WADCOMS](https://wadcoms.github.io/#+SMB+Windows)
+[GTFOBins](https://gtfobins.github.io/)
+[SwissKeyRepo - Payload All The Things](https://github.com/swisskyrepo/PayloadsAllTheThings)
+[Living Of The Land Binaries and Scripts for Windows](https://lolbas-project.github.io/#)
+[Active Directory MindMap](https://orange-cyberdefense.github.io/ocd-mindmaps/)
+[Precompiled .NET Binaries](https://github.com/jakobfriedl/precompiled-binaries)
