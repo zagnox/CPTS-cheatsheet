@@ -74,6 +74,18 @@ tmux kill-session -a
 # attach to last session
 tmux a
 tmux a -t <name>
+
+# start/stop logging with tmux logger
+prefix + [Shift + P]
+
+# split tmux pane vertically
+prefix + [Shift + %}
+
+# split tmux pane horizontally
+prefix + [Shift + "]
+
+# switch between tmux panes
+prefix + [Shift + O]
 ```
 
 ## [NMAP](https://www.stationx.net/nmap-cheat-sheet/)
