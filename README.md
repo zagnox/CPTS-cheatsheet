@@ -4,7 +4,36 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 **Table of Contents**
 - [Tmux](#tmux)
 - [Nmap](#nmap)
-  - [Nmap address scanning](#nmap-address-scanning)
+  - [Address Scanning](#nmap-address-scanning)
+  - [Scanning Techniques](#nmap-scanning-techniques)
+  - [Host Discovery](#nmap-host-discovery)
+  - [Port Scan](#nmap-port-scan)
+  - [OS and Service Detection](#nmap-os-and-service-detection)
+  - [Timing and Performance](#nmap-timing-and-performance)
+  - [NSE Scripts](#nse-scripts)
+  - [Evasion and Spoofing](#firewall-evasion-and-spoofing)
+  - [Output](#output)
+- [Footprinting Services](#footprinting-services)
+    - [FTP](#ftp)
+    - [SMB](#smb)
+    - [NFS](#nfs)
+    - [DNS](#dns)
+    - [IMAP POP3](#imap-pop3)
+    - [SNMP](#snmp)
+    - [MSSQL](#mssql)
+    - [IPMI](#ipmi)
+    - [Remote Management](#linux-remote-management-ssh)
+- [Password Attacks](#password-attacks)
+    - [Password Mutations](#password-mutations)
+    - [Remote Password Attacks](#remote-password-attacks)
+    - [Windows Password Attacks](#windows-password-attacks)
+    - [Linux Password Attacks](#linux-password-attacks)
+    - [Cracking Passwords](#cracking-passwords)
+- [Attacking Common Services](#attacking-common-services)
+    - [Attacking SMB](#attacking-smb)
+    - [Attacking SQL](#attacking-sql)
+    - [Attacking Email Services](#attacking-email-services)
+- [Active Directory](#active-directory)
 
 ## [Tmux](https://tmuxcheatsheet.com/)
 ```
@@ -125,7 +154,7 @@ nmap 192.168.1.1 --script=banner
 # NSE script with arguments
 nmap 192.168.1.1 --script=banner --script-args <arguments>
 ```
-#### Firewall / IDS Evasion and Spoofing
+#### Firewall Evasion and Spoofing
 ```
 # Requested scan (including ping scans) use tiny fragmented IP packets. Harder for packet filters
 nmap -f 192.168.1.1
@@ -188,7 +217,7 @@ dig any <domain.tld> @<nameserver>
 dig axfr <domain.tld> @<nameserver>
 ```
 
-##### IMAP/POP3
+##### IMAP POP3
 ```
 # Log in to the IMAPS service using cURL
 curl -k 'imaps://<FQDN/IP>' --user <user>:<password>
